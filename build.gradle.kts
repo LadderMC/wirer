@@ -4,7 +4,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-group = "fr.ladder.di"
+group = "fr.ladder"
 version = "1.0.0"
 
 tasks.compileJava {
