@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("idea")
+    id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -17,8 +18,8 @@ repositories {
         name = "maven-releases"
         url = uri("https://repo.lylaw.fr/repository/maven-releases/")
         credentials {
-            username = findProperty("NEXUS_USER") as String?
-            password = findProperty("NEXUS_PASSWORD") as String?
+            username = findProperty("NEXUS_USER") as String? ?: System.getenv("NEXUS_USER")
+            password = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("NEXUS_PASSWORD")
         }
     }
 }
@@ -37,4 +38,51 @@ tasks.shadowJar {
 
 tasks.build {
     dependsOn(tasks.shadowJar)
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "maven-releases"
+            url = uri("https://repo.lylaw.fr/repository/maven-releases/")
+            credentials {
+                username = findProperty("NEXUS_USER") as String? ?: System.getenv("NEXUS_USER")
+                password = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("NEXUS_PASSWORD")
+            }
+        }
+    }
+
+    publications {
+        val refType = System.getProperty("refType") ?: ""
+        when (refType) {
+            "branch" -> {
+                // create commit package
+                val refName = (System.getProperty("refName") ?: "").replace("/", "-")
+                val commitHash = (System.getProperty("commitHash") ?: "").take(7);
+
+                val classifier = if(refName.isNotEmpty() && commitHash.isNotEmpty()) "-$refName-$commitHash" else ""
+                if(classifier.isNotEmpty()) {
+                    // create a publication with the classifier
+                    create<MavenPublication>("maven") {
+                        groupId = project.group.toString()
+                        artifactId = "dependency-injection"
+                        version = project.version.toString() + classifier
+
+                        from(components["java"])
+                    }
+                }
+            }
+            "tag" -> {
+                // create a publication with the classifier
+                create<MavenPublication>("maven") {
+                    groupId = project.group.toString()
+                    artifactId = "dependency-injection"
+                    version = project.version.toString()
+
+                    from(components["java"])
+                }
+            }
+            else -> println("No publication created because refType is not branch or tag")
+        }
+    }
 }
