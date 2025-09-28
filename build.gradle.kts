@@ -53,12 +53,12 @@ publishing {
     }
 
     publications {
-        val refType = System.getProperty("refType") ?: ""
+        val refType = System.getenv("refType") ?: ""
         when (refType) {
             "branch" -> {
                 // create commit package
-                val refName = (System.getProperty("refName") ?: "").replace("/", "-")
-                val commitHash = (System.getProperty("commitHash") ?: "").take(7);
+                val refName = (System.getenv("refName") ?: "").replace("/", "-")
+                val commitHash = (System.getenv("commitHash") ?: "").take(7);
 
                 val classifier = if(refName.isNotEmpty() && commitHash.isNotEmpty()) "-$refName-$commitHash" else ""
                 if(classifier.isNotEmpty()) {
