@@ -46,6 +46,6 @@ jobs:
         env:
           nexusUser: ${{ secrets.NEXUS_USER }}
           nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
-          refName: ${{ github.REF_NAME }}
-          refType: ${{ github.REF_TYPE }}
-          commitHash: ${{ github.SHA }}
+          refName: ${{ github.ref_name }}
+          refType: ${{ github.ref_type }}
+          commitHash: ${{ github.sha }}
