@@ -18,8 +18,8 @@ repositories {
         name = "maven-releases"
         url = uri("https://repo.lylaw.fr/repository/maven-releases/")
         credentials {
-            username = findProperty("NEXUS_USER") as String? ?: System.getenv("NEXUS_USER")
-            password = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("NEXUS_PASSWORD")
+            username = findProperty("NEXUS_USER") as String? ?: System.getenv("nexusUser")
+            password = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("nexusPassword")
         }
     }
 }
@@ -46,8 +46,8 @@ publishing {
             name = "maven-releases"
             url = uri("https://repo.lylaw.fr/repository/maven-releases/")
             credentials {
-                username = findProperty("NEXUS_USER") as String? ?: System.getenv("NEXUS_USER")
-                password = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("NEXUS_PASSWORD")
+                username = findProperty("NEXUS_USER") as String? ?: System.getenv("nexusUser")
+                password = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("nexusPassword")
             }
         }
     }
