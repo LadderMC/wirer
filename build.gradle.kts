@@ -64,7 +64,7 @@ publishing {
                 if(version.toString().isNotEmpty()) {
                     create<MavenPublication>("maven") {
                         groupId = project.group.toString()
-                        artifactId = "dependency-injection"
+                        artifactId = "ladder-di"
                         version = version.toString()
 
                         from(components["java"])
