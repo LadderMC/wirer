@@ -5,8 +5,12 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
+// environment properties
+val latestTag: String? = System.getenv("latestTag")?.replace("v", "")
+val commitHash: String? = System.getenv("commitHash")?.take(7);
+
 group = "fr.ladder"
-version = "1.0.0"
+version = if(latestTag != null && commitHash != null) "$latestTag-$commitHash" else "local"
 
 tasks.compileJava {
     options.encoding = "UTF-8"
@@ -56,28 +60,26 @@ publishing {
         val refType = System.getenv("refType") ?: ""
         when (refType) {
             "branch" -> {
-                // create commit package
-                val refName = (System.getenv("refName") ?: "").replace("/", "-")
-                val commitHash = (System.getenv("commitHash") ?: "").take(7);
-
-                val classifier = if(refName.isNotEmpty() && commitHash.isNotEmpty()) "-$refName-$commitHash" else ""
-                if(classifier.isNotEmpty()) {
-                    // create a publication with the classifier
+                // create commit package on push to branch main
+                if(version.toString().isNotEmpty()) {
                     create<MavenPublication>("maven") {
                         groupId = project.group.toString()
                         artifactId = "dependency-injection"
-                        version = project.version.toString() + classifier
+                        version = version.toString()
 
                         from(components["java"])
                     }
                 }
             }
             "tag" -> {
+                val refName = (System.getenv("refName") ?: "")
+                    .replace("v", "")
+                    .replace("/", "-")
                 // create a publication with the classifier
                 create<MavenPublication>("maven") {
                     groupId = project.group.toString()
-                    artifactId = "dependency-injection"
-                    version = project.version.toString()
+                    artifactId = "ladder-di"
+                    version = refName
 
                     from(components["java"])
                 }
