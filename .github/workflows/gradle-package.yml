@@ -31,7 +31,7 @@ jobs:
           if [ "$RESPONSE" -eq 200 ]; then
             TAG=$(jq -r .tag_name response.json)
           else
-            TAG="v0.0.1"
+            TAG="v0.0.0"
           fi
 
           echo "latestTag=$TAG" >> $GITHUB_OUTPUT
