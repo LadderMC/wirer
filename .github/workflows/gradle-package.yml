@@ -58,6 +58,7 @@ jobs:
           commitHash: ${{ github.sha }}
 
   publish:
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
