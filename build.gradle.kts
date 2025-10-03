@@ -48,7 +48,7 @@ fun getVersion(): String? {
     return builder.toString()
 }
 
-group = "fr.ladder.wirer"
+group = "fr.ladder"
 version = getVersion() ?: "local"
 
 tasks.compileJava {
@@ -85,12 +85,32 @@ tasks.build {
 
 publishing {
     repositories {
-        maven {
-            name = "maven-releases"
-            url = uri("https://repo.lylaw.fr/repository/maven-releases/")
-            credentials {
-                username = findProperty("NEXUS_USER") as String? ?: System.getenv("nexusUser")
-                password = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("nexusPassword")
+
+        val githubUser = System.getenv("USERNAME")
+        val githubPassword = System.getenv("TOKEN")
+
+        if(githubUser != null) {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/LadderMC/wirer")
+                credentials {
+                    username = githubUser
+                    password = githubPassword
+                }
+            }
+        }
+
+        val nexusUser = findProperty("NEXUS_USER") as String? ?: System.getenv("nexusUser")
+        val nexusPassword = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("nexusPassword")
+
+        if(nexusUser != null) {
+            maven {
+                name = "maven-releases"
+                url = uri("https://repo.lylaw.fr/repository/maven-releases/")
+                credentials {
+                    username = nexusUser
+                    password = nexusPassword
+                }
             }
         }
     }
