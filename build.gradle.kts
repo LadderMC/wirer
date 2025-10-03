@@ -86,7 +86,7 @@ publishing {
         val githubPassword = System.getenv("TOKEN")
 
         if(githubUser != null) {
-            println("- add 'GitHubPackages' repository.")
+            println("- register 'GitHubPackages' repository.")
             maven {
                 name = "GitHubPackages"
                 url = uri("https://maven.pkg.github.com/LadderMC/wirer")
@@ -103,11 +103,10 @@ publishing {
         val nexusPassword = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("nexusPassword")
 
         if(nexusUser != null) {
-            val repositoryName = if(System.getenv("refType") == "tag") "maven-releases" else "maven-snapshots"
-            println("- add '$repositoryName' repository.")
+            println("- register 'MavenReleases' repository.")
             maven {
-                name = repositoryName
-                url = uri("https://repo.lylaw.fr/repository/$repositoryName/")
+                name = "MavenReleases"
+                url = uri("https://repo.lylaw.fr/repository/maven-releases/")
                 credentials {
                     username = nexusUser
                     password = nexusPassword
