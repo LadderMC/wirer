@@ -1,1 +1,1 @@
-rootProject.name = "Ladder-DI"
+rootProject.name = "wirer"

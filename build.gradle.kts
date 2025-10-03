@@ -48,7 +48,7 @@ fun getVersion(): String? {
     return builder.toString()
 }
 
-group = "fr.ladder"
+group = "fr.ladder.wirer"
 version = getVersion() ?: "local"
 
 tasks.compileJava {
@@ -103,7 +103,7 @@ publishing {
                 if(version.toString().startsWith("v")) {
                     create<MavenPublication>("maven") {
                         groupId = project.group.toString()
-                        artifactId = "ladder-di"
+                        artifactId = "wirer"
                         version = version.toString()
 
                         from(components["java"])
@@ -117,7 +117,7 @@ publishing {
                 // create a publication with the classifier
                 create<MavenPublication>("maven") {
                     groupId = project.group.toString()
-                    artifactId = "ladder-di"
+                    artifactId = "wirer"
                     version = refName
 
                     from(components["java"])
