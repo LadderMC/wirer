@@ -1,3 +1,3 @@
-# 🪜• Ladder Dependency Injection
+# Wirer
 
-Ladder-DI is a lightweight dependency injection library for ...
+Wirer is a dependency injection API for paper plugin.
