@@ -9,8 +9,10 @@ name: Gradle Build
 
 on:
   push:
-    branches:
-      - "**"
+    branches-ignore:
+      - "main"
+    tags-ignore:
+      - "v*.*.*"
 
 jobs:
   prepare:
