@@ -91,6 +91,9 @@ jobs:
       - name: Publish to Lylaw Packages
         run: ./gradlew publish --stacktrace
         env:
+          githubUser: ${{ github.actor }}
+          githubPassword: ${{ secrets.GITHUB_TOKEN }}
+          githubRepository: ${{ github.repository }}
           nexusUser: ${{ secrets.NEXUS_USER }}
           nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
           refName: ${{ github.ref_name }}

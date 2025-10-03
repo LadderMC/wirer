@@ -82,14 +82,15 @@ tasks.build {
 publishing {
     repositories {
 
-        val githubUser = System.getenv("USERNAME")
-        val githubPassword = System.getenv("TOKEN")
+        val githubUser = System.getenv("githubUser")
+        val githubPassword = System.getenv("githubPassword")
+        val githubRepository = System.getenv("githubRepository")
 
         if(githubUser != null) {
             println("- register 'GitHubPackages' repository.")
             maven {
                 name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/LadderMC/wirer")
+                url = uri("https://maven.pkg.github.com/$githubRepository")
                 credentials {
                     username = githubUser
                     password = githubPassword
