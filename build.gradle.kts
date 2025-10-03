@@ -60,10 +60,6 @@ repositories {
     maven {
         name = "maven-releases"
         url = uri("https://repo.lylaw.fr/repository/maven-releases/")
-        credentials {
-            username = findProperty("NEXUS_USER") as String? ?: System.getenv("nexusUser")
-            password = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("nexusPassword")
-        }
     }
 }
 
@@ -90,6 +86,7 @@ publishing {
         val githubPassword = System.getenv("TOKEN")
 
         if(githubUser != null) {
+            println("- add 'GitHubPackages' repository.")
             maven {
                 name = "GitHubPackages"
                 url = uri("https://maven.pkg.github.com/LadderMC/wirer")
@@ -98,20 +95,26 @@ publishing {
                     password = githubPassword
                 }
             }
+        } else {
+            println("- 'githubUser' is null.")
         }
 
         val nexusUser = findProperty("NEXUS_USER") as String? ?: System.getenv("nexusUser")
         val nexusPassword = findProperty("NEXUS_PASSWORD") as String? ?: System.getenv("nexusPassword")
 
         if(nexusUser != null) {
+            val repositoryName = if(System.getenv("refType") == "tag") "maven-releases" else "maven-snapshots"
+            println("- add '$repositoryName' repository.")
             maven {
-                name = "maven-releases"
-                url = uri("https://repo.lylaw.fr/repository/maven-releases/")
+                name = repositoryName
+                url = uri("https://repo.lylaw.fr/repository/$repositoryName/")
                 credentials {
                     username = nexusUser
                     password = nexusPassword
                 }
             }
+        } else {
+            println("- 'nexusUser' is null.")
         }
     }
 
