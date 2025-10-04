@@ -86,7 +86,7 @@ publishing {
         val githubPassword = System.getenv("githubPassword")
         val githubRepository = System.getenv("githubRepository")
 
-        if(githubUser != null) {
+        if(githubUser != null && System.getenv("refType") == "tag") {
             println("- register 'GitHubPackages' repository.")
             maven {
                 name = "GitHubPackages"
