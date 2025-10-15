@@ -1,16 +1,16 @@
-package fr.ladder.di.base;
+package fr.ladder.wirer.base;
 
-import fr.ladder.di.PluginInspector;
-import fr.ladder.di.ServiceCollection;
-import fr.ladder.di.annotation.Inject;
-import fr.ladder.di.annotation.ToInject;
+import fr.ladder.wirer.reflect.PluginInspector;
+import fr.ladder.wirer.ServiceCollection;
+import fr.ladder.wirer.annotation.Inject;
+import fr.ladder.wirer.annotation.ToInject;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public class LadderServiceCollection implements ServiceCollection {
+public class WirerServiceCollection implements ServiceCollection {
 
     private final Map<Class<?>, Object> _singletonMap;
 
@@ -20,7 +20,7 @@ public class LadderServiceCollection implements ServiceCollection {
 
     private final Set<Class<?>> _resolvingSet;
 
-    public LadderServiceCollection() {
+    public WirerServiceCollection() {
         _singletonMap = new HashMap<>();
         _classLoaderMap = new HashMap<>();
         _transientMap = new HashMap<>();

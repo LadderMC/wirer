@@ -1,4 +1,4 @@
-package fr.ladder.di;
+package fr.ladder.wirer;
 
 import org.bukkit.plugin.java.JavaPlugin;
 

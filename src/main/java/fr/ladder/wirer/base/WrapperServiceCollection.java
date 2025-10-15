@@ -1,22 +1,16 @@
-package fr.ladder.di.base;
+package fr.ladder.wirer.base;
 
-import fr.ladder.di.ScopedServiceCollection;
-import fr.ladder.di.ServiceCollection;
+import fr.ladder.wirer.ScopedServiceCollection;
+import fr.ladder.wirer.ServiceCollection;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * @author Snowtyy
  */
-public class WrapperServiceCollection implements ScopedServiceCollection {
-
-    private final JavaPlugin _plugin;
-
-    private final ServiceCollection _serviceCollection;
-
-    public WrapperServiceCollection(JavaPlugin plugin, ServiceCollection serviceCollection) {
-        _plugin = plugin;
-        _serviceCollection = serviceCollection;
-    }
+public record WrapperServiceCollection(
+        JavaPlugin _plugin,
+        ServiceCollection _serviceCollection
+) implements ScopedServiceCollection {
 
     @Override
     public <I, Impl extends I> void addSingleton(Class<I> classInterface, Class<Impl> classImplementation) {

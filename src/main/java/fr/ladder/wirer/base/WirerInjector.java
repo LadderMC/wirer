@@ -1,10 +1,10 @@
-package fr.ladder.di.base;
+package fr.ladder.wirer.base;
 
-import fr.ladder.di.ScopedServiceCollection;
+import fr.ladder.wirer.ScopedServiceCollection;
+import fr.ladder.wirer.reflect.PluginInspectorHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.lang.reflect.Field;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
@@ -15,33 +15,21 @@ import java.util.logging.Logger;
 /**
  * @author Snowtyy
  */
-public class LadderInjector implements fr.ladder.di.Injector.Implementation {
+public class WirerInjector implements fr.ladder.wirer.Injector.Implementation {
 
     private Set<JavaPlugin> _plugins;
 
-    private LadderServiceCollection _serviceCollection;
+    private WirerServiceCollection _serviceCollection;
 
-    public LadderInjector() {
+    private PluginInspectorHandler _inspectorHandler;
+
+    public WirerInjector() {
         _plugins = new HashSet<>();
-        _serviceCollection = new LadderServiceCollection();
-    }
-    @Override
-    public void implement(Class<?> clazz, Object instance) {
-        Field[] fields = clazz.getDeclaredFields();
-        for(Field field : fields) {
-            if(field.getType().isAssignableFrom(instance.getClass())) {
-                try {
-                    field.setAccessible(true);
-                    field.set(null, instance);
-                } catch (IllegalAccessException e) {
-                    Bukkit.getLogger().severe("An error occurred on implement: " + clazz.getSimpleName());
-                }
-            }
-        }
+        _serviceCollection = new WirerServiceCollection();
     }
 
     @Override
-    public void setupInjection(JavaPlugin plugin, Consumer<ScopedServiceCollection> consumer) {
+    public void setup(JavaPlugin plugin, Consumer<ScopedServiceCollection> consumer) {
         _plugins.add(plugin);
         _serviceCollection.addAll(plugin);
         // default bindings
