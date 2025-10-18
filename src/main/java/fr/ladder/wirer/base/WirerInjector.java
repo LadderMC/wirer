@@ -19,13 +19,11 @@ public class WirerInjector implements fr.ladder.wirer.Injector.Implementation {
 
     private Set<JavaPlugin> _plugins;
 
-    private WirerServiceCollection _serviceCollection;
+    private ServiceCollection _serviceCollection;
 
-    private PluginInspectorHandler _inspectorHandler;
-
-    public WirerInjector() {
+    public WirerInjector(PluginInspectorHandler inspectorHandler) {
         _plugins = new HashSet<>();
-        _serviceCollection = new WirerServiceCollection();
+        _serviceCollection = new ServiceCollection(inspectorHandler);
     }
 
     @Override
@@ -44,7 +42,7 @@ public class WirerInjector implements fr.ladder.wirer.Injector.Implementation {
 
         // ============ INJECTION ============
         final Logger logger = Bukkit.getLogger();
-        logger.info("Injecting dependencies...");
+        logger.info("Injecting services...");
         Instant start = Instant.now();
         _plugins.forEach(_serviceCollection::injectAll);
         Duration duration = Duration.between(start, Instant.now());

@@ -1,13 +1,12 @@
 package fr.ladder.wirer.base;
 
 import fr.ladder.wirer.ScopedServiceCollection;
-import fr.ladder.wirer.ServiceCollection;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * @author Snowtyy
  */
-public record WrapperServiceCollection(
+record WrapperServiceCollection(
         JavaPlugin _plugin,
         ServiceCollection _serviceCollection
 ) implements ScopedServiceCollection {

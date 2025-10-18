@@ -1,16 +1,18 @@
 package fr.ladder.wirer.base;
 
 import fr.ladder.wirer.reflect.PluginInspector;
-import fr.ladder.wirer.ServiceCollection;
 import fr.ladder.wirer.annotation.Inject;
 import fr.ladder.wirer.annotation.ToInject;
+import fr.ladder.wirer.reflect.PluginInspectorHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public class WirerServiceCollection implements ServiceCollection {
+public class ServiceCollection {
+
+    private final PluginInspectorHandler _inspectorHandler;
 
     private final Map<Class<?>, Object> _singletonMap;
 
@@ -20,7 +22,8 @@ public class WirerServiceCollection implements ServiceCollection {
 
     private final Set<Class<?>> _resolvingSet;
 
-    public WirerServiceCollection() {
+    ServiceCollection(PluginInspectorHandler inspectorHandler) {
+        _inspectorHandler = inspectorHandler;
         _singletonMap = new HashMap<>();
         _classLoaderMap = new HashMap<>();
         _transientMap = new HashMap<>();
@@ -29,13 +32,11 @@ public class WirerServiceCollection implements ServiceCollection {
 
     // region --- Singleton ---
 
-    @Override
-    public <I, Impl extends I> void addSingleton(Class<I> classInterface, Class<Impl> classImplementation) {
+        public <I, Impl extends I> void addSingleton(Class<I> classInterface, Class<Impl> classImplementation) {
         _singletonMap.put(classInterface, classImplementation);
     }
 
-    @Override
-    public <I, Impl extends I> void addSingleton(Class<I> classInterface, Impl implementation) {
+        public <I, Impl extends I> void addSingleton(Class<I> classInterface, Impl implementation) {
         _singletonMap.put(classInterface, implementation);
     }
 
@@ -43,7 +44,6 @@ public class WirerServiceCollection implements ServiceCollection {
 
     // region --- Scoped ---
 
-    @Override
     public <I, Impl extends I> void addScoped(JavaPlugin plugin, Class<I> classInterface, Class<Impl> classImplementation) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
@@ -51,21 +51,18 @@ public class WirerServiceCollection implements ServiceCollection {
 
     }
 
-    @Override
     public <I, Impl extends I> void addScoped(JavaPlugin plugin, Class<I> classInterface, Impl implementation) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
         _classLoaderMap.get(classLoader).put(classInterface, implementation);
     }
 
-    @Override
     public <Impl> void addScoped(JavaPlugin plugin, Class<Impl> classImplementation) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
         _classLoaderMap.get(classLoader).put(classImplementation, classImplementation);
     }
 
-    @Override
     public <Impl> void addScoped(JavaPlugin plugin, Impl implementation) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
@@ -76,47 +73,49 @@ public class WirerServiceCollection implements ServiceCollection {
 
     // region --- Transient ---
 
-    @Override
     public <I, Impl extends I> void addTransient(Class<I> classInterface, Class<Impl> classImplementation) {
         _transientMap.put(classInterface, classImplementation);
     }
 
     // endregion
 
-    public void addAll(JavaPlugin plugin, PluginInspector inspector) {
+    public void addAll(JavaPlugin plugin) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
 
-        inspector.getClassesWithAnnotation(ToInject.class).forEach(classImplementation -> {
-            ToInject toInject = classImplementation.getAnnotation(ToInject.class);
-            Class<?> classInterface = toInject.value();
-            if (classInterface.isAssignableFrom(classImplementation)) {
-                switch (toInject.type()) {
-                    case SINGLETON -> _singletonMap.put(classInterface, classImplementation);
-                    case SCOPED -> _classLoaderMap.get(classLoader).put(classInterface, classImplementation);
-                    case TRANSIENT -> _transientMap.put(classInterface, classImplementation);
+        try(PluginInspector inspector = _inspectorHandler.getInspector(plugin)) {
+            inspector.getClassesWithAnnotation(ToInject.class).forEach(classImplementation -> {
+                ToInject toInject = classImplementation.getAnnotation(ToInject.class);
+                Class<?> classInterface = toInject.value();
+                if (classInterface.isAssignableFrom(classImplementation)) {
+                    switch (toInject.type()) {
+                        case SINGLETON -> _singletonMap.put(classInterface, classImplementation);
+                        case SCOPED -> _classLoaderMap.get(classLoader).put(classInterface, classImplementation);
+                        case TRANSIENT -> _transientMap.put(classInterface, classImplementation);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
 
-    public void injectAll(JavaPlugin plugin, PluginInspector inspector) {
+    public void injectAll(JavaPlugin plugin) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
 
-        inspector.getFieldsWithAnnotation(Inject.class)
-                .filter(f -> Modifier.isPrivate(f.getModifiers()) && Modifier.isStatic(f.getModifiers()))
-                .forEach(field -> {
-                    this.getInstance(classLoader, field.getType()).ifPresent(instance -> {
-                        try {
-                            field.setAccessible(true);
-                            field.set(null, instance);
-                        } catch (IllegalAccessException ignored) {
-                        }
+        try(PluginInspector inspector = _inspectorHandler.getInspector(plugin)) {
+            inspector.getFieldsWithAnnotation(Inject.class)
+                    .filter(f -> Modifier.isPrivate(f.getModifiers()) && Modifier.isStatic(f.getModifiers()))
+                    .forEach(field -> {
+                        this.getInstance(classLoader, field.getType()).ifPresent(instance -> {
+                            try {
+                                field.setAccessible(true);
+                                field.set(null, instance);
+                            } catch (IllegalAccessException ignored) {
+                            }
+                        });
                     });
-                });
-
+        }
     }
 
     private Optional<Object> getInstance(ClassLoader classLoader, Class<?> classInterface) {
