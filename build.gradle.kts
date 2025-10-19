@@ -17,7 +17,6 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains", "annotations", "24.0.1")
-    implementation("io.github.classgraph", "classgraph", "4.8.181")
     implementation("org.slf4j", "slf4j-simple", "1.6.1")
 
     compileOnly("fr.snowtyy", "papermc", "1.8.8")
