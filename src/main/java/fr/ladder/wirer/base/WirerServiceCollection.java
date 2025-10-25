@@ -1,18 +1,18 @@
 package fr.ladder.wirer.base;
 
-import fr.ladder.wirer.reflect.PluginInspector;
+import fr.ladder.wirer.reflect.IPluginInspector;
 import fr.ladder.wirer.annotation.Inject;
 import fr.ladder.wirer.annotation.ToInject;
-import fr.ladder.wirer.reflect.PluginInspectorHandler;
+import fr.ladder.wirer.reflect.IPluginInspectorHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public class ServiceCollection {
+public class WirerServiceCollection {
 
-    private final PluginInspectorHandler _inspectorHandler;
+    private final IPluginInspectorHandler _inspectorHandler;
 
     private final Map<Class<?>, Object> _singletonMap;
 
@@ -22,7 +22,7 @@ public class ServiceCollection {
 
     private final Set<Class<?>> _resolvingSet;
 
-    ServiceCollection(PluginInspectorHandler inspectorHandler) {
+    WirerServiceCollection(IPluginInspectorHandler inspectorHandler) {
         _inspectorHandler = inspectorHandler;
         _singletonMap = new HashMap<>();
         _classLoaderMap = new HashMap<>();
@@ -83,7 +83,7 @@ public class ServiceCollection {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
 
-        try(PluginInspector inspector = _inspectorHandler.getInspector(plugin)) {
+        try(IPluginInspector inspector = _inspectorHandler.getInspector(plugin)) {
             inspector.getClassesWithAnnotation(ToInject.class).forEach(classImplementation -> {
                 ToInject toInject = classImplementation.getAnnotation(ToInject.class);
                 Class<?> classInterface = toInject.value();
@@ -103,7 +103,7 @@ public class ServiceCollection {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
 
-        try(PluginInspector inspector = _inspectorHandler.getInspector(plugin)) {
+        try(IPluginInspector inspector = _inspectorHandler.getInspector(plugin)) {
             inspector.getFieldsWithAnnotation(Inject.class)
                     .filter(f -> Modifier.isPrivate(f.getModifiers()) && Modifier.isStatic(f.getModifiers()))
                     .forEach(field -> {

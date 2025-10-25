@@ -3,7 +3,7 @@ package fr.ladder.wirer;
 /**
  * @author Snowtyy
  */
-public interface ScopedServiceCollection {
+public interface ServiceCollection {
 
  <I, Impl extends I> void addSingleton(Class<I> classInterface, Class<Impl> classImplementation);
 

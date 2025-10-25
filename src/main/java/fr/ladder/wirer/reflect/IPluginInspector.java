@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 /**
  * @author Snowtyy
  */
-public interface PluginInspector extends AutoCloseable {
+public interface IPluginInspector extends AutoCloseable {
 
     Stream<Class<?>> getClassesWithAnnotation(Class<? extends Annotation> annotation);
 

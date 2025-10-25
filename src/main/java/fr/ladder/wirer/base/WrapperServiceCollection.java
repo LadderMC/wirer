@@ -1,6 +1,6 @@
 package fr.ladder.wirer.base;
 
-import fr.ladder.wirer.ScopedServiceCollection;
+import fr.ladder.wirer.ServiceCollection;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -8,8 +8,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 record WrapperServiceCollection(
         JavaPlugin _plugin,
-        ServiceCollection _serviceCollection
-) implements ScopedServiceCollection {
+        WirerServiceCollection _serviceCollection
+) implements ServiceCollection {
 
     @Override
     public <I, Impl extends I> void addSingleton(Class<I> classInterface, Class<Impl> classImplementation) {
