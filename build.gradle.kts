@@ -23,10 +23,6 @@ dependencies {
     compileOnly("fr.snowtyy", "papermc", "1.8.8")
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
-
 tasks.shadowJar {
     archiveClassifier.set("")
 }
