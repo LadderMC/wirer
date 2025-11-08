@@ -1,7 +1,6 @@
 package fr.ladder.wirer.base;
 
 import fr.ladder.wirer.ServiceCollection;
-import fr.ladder.wirer.reflect.IPluginInspectorHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,9 +20,8 @@ public class WirerInjector implements fr.ladder.wirer.Injector.Implementation {
 
     private WirerServiceCollection _serviceCollection;
 
-    public WirerInjector(IPluginInspectorHandler inspectorHandler) {
+    public WirerInjector() {
         _plugins = new HashSet<>();
-        _serviceCollection = new WirerServiceCollection(inspectorHandler);
     }
 
     @Override

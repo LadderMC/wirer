@@ -1,9 +1,9 @@
 package fr.ladder.wirer.base;
 
-import fr.ladder.wirer.reflect.IPluginInspector;
+import fr.ladder.reflex.PluginInspector;
+import fr.ladder.reflex.Reflex;
 import fr.ladder.wirer.annotation.Inject;
 import fr.ladder.wirer.annotation.ToInject;
-import fr.ladder.wirer.reflect.IPluginInspectorHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.InvocationTargetException;
@@ -11,8 +11,6 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class WirerServiceCollection {
-
-    private final IPluginInspectorHandler _inspectorHandler;
 
     private final Map<Class<?>, Object> _singletonMap;
 
@@ -22,8 +20,7 @@ public class WirerServiceCollection {
 
     private final Set<Class<?>> _resolvingSet;
 
-    WirerServiceCollection(IPluginInspectorHandler inspectorHandler) {
-        _inspectorHandler = inspectorHandler;
+    WirerServiceCollection() {
         _singletonMap = new HashMap<>();
         _classLoaderMap = new HashMap<>();
         _transientMap = new HashMap<>();
@@ -83,7 +80,7 @@ public class WirerServiceCollection {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
 
-        try(IPluginInspector inspector = _inspectorHandler.getInspector(plugin)) {
+        try(PluginInspector inspector = Reflex.getInspector(plugin)) {
             inspector.getClassesWithAnnotation(ToInject.class).forEach(classImplementation -> {
                 ToInject toInject = classImplementation.getAnnotation(ToInject.class);
                 Class<?> classInterface = toInject.value();
@@ -103,7 +100,7 @@ public class WirerServiceCollection {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
 
-        try(IPluginInspector inspector = _inspectorHandler.getInspector(plugin)) {
+        try(PluginInspector inspector = Reflex.getInspector(plugin)) {
             inspector.getFieldsWithAnnotation(Inject.class)
                     .filter(f -> Modifier.isPrivate(f.getModifiers()) && Modifier.isStatic(f.getModifiers()))
                     .forEach(field -> {

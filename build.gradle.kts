@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("idea")
-    id("fr.ladder.releasr") version "0.0.1-3f26179"
+    id("fr.ladder.releasr") version "1.0.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -19,6 +19,7 @@ dependencies {
     implementation("org.jetbrains", "annotations", "24.0.1")
     implementation("org.slf4j", "slf4j-simple", "1.6.1")
 
+    implementation("fr.ladder", "reflex", "1.0.0")
     compileOnly("fr.snowtyy", "papermc", "1.8.8")
 }
 
