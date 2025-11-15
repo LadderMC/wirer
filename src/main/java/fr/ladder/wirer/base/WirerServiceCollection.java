@@ -4,7 +4,7 @@ import fr.ladder.reflex.PluginInspector;
 import fr.ladder.reflex.Reflex;
 import fr.ladder.wirer.annotation.Inject;
 import fr.ladder.wirer.annotation.ToInject;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -41,26 +41,26 @@ public class WirerServiceCollection {
 
     // region --- Scoped ---
 
-    public <I, Impl extends I> void addScoped(JavaPlugin plugin, Class<I> classInterface, Class<Impl> classImplementation) {
+    public <I, Impl extends I> void addScoped(Plugin plugin, Class<I> classInterface, Class<Impl> classImplementation) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
         _classLoaderMap.get(classLoader).put(classInterface, classImplementation);
 
     }
 
-    public <I, Impl extends I> void addScoped(JavaPlugin plugin, Class<I> classInterface, Impl implementation) {
+    public <I, Impl extends I> void addScoped(Plugin plugin, Class<I> classInterface, Impl implementation) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
         _classLoaderMap.get(classLoader).put(classInterface, implementation);
     }
 
-    public <Impl> void addScoped(JavaPlugin plugin, Class<Impl> classImplementation) {
+    public <Impl> void addScoped(Plugin plugin, Class<Impl> classImplementation) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
         _classLoaderMap.get(classLoader).put(classImplementation, classImplementation);
     }
 
-    public <Impl> void addScoped(JavaPlugin plugin, Impl implementation) {
+    public <Impl> void addScoped(Plugin plugin, Impl implementation) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
         _classLoaderMap.get(classLoader).put(implementation.getClass(), implementation);
@@ -76,43 +76,39 @@ public class WirerServiceCollection {
 
     // endregion
 
-    public void addAll(JavaPlugin plugin) {
+    public void addAll(Plugin plugin, PluginInspector inspector) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
 
-        try(PluginInspector inspector = Reflex.getInspector(plugin)) {
-            inspector.getClassesWithAnnotation(ToInject.class).forEach(classImplementation -> {
-                ToInject toInject = classImplementation.getAnnotation(ToInject.class);
-                Class<?> classInterface = toInject.value();
-                if (classInterface.isAssignableFrom(classImplementation)) {
-                    switch (toInject.type()) {
-                        case SINGLETON -> _singletonMap.put(classInterface, classImplementation);
-                        case SCOPED -> _classLoaderMap.get(classLoader).put(classInterface, classImplementation);
-                        case TRANSIENT -> _transientMap.put(classInterface, classImplementation);
-                    }
+        inspector.getClassesWithAnnotation(ToInject.class).forEach(classImplementation -> {
+            ToInject toInject = classImplementation.getAnnotation(ToInject.class);
+            Class<?> classInterface = toInject.value();
+            if (classInterface.isAssignableFrom(classImplementation)) {
+                switch (toInject.type()) {
+                    case SINGLETON -> _singletonMap.put(classInterface, classImplementation);
+                    case SCOPED -> _classLoaderMap.get(classLoader).put(classInterface, classImplementation);
+                    case TRANSIENT -> _transientMap.put(classInterface, classImplementation);
                 }
-            });
-        }
+            }
+        });
     }
 
 
-    public void injectAll(JavaPlugin plugin) {
+    public void injectAll(Plugin plugin, PluginInspector inspector) {
         final var classLoader = plugin.getClass().getClassLoader();
         _classLoaderMap.putIfAbsent(classLoader, new HashMap<>());
 
-        try(PluginInspector inspector = Reflex.getInspector(plugin)) {
-            inspector.getFieldsWithAnnotation(Inject.class)
-                    .filter(f -> Modifier.isPrivate(f.getModifiers()) && Modifier.isStatic(f.getModifiers()))
-                    .forEach(field -> {
-                        this.getInstance(classLoader, field.getType()).ifPresent(instance -> {
-                            try {
-                                field.setAccessible(true);
-                                field.set(null, instance);
-                            } catch (IllegalAccessException ignored) {
-                            }
-                        });
+        inspector.getFieldsWithAnnotation(Inject.class)
+                .filter(f -> Modifier.isPrivate(f.getModifiers()) && Modifier.isStatic(f.getModifiers()))
+                .forEach(field -> {
+                    this.getInstance(classLoader, field.getType()).ifPresent(instance -> {
+                        try {
+                            field.setAccessible(true);
+                            field.set(null, instance);
+                        } catch (IllegalAccessException ignored) {
+                        }
                     });
-        }
+                });
     }
 
     private Optional<Object> getInstance(ClassLoader classLoader, Class<?> classInterface) {
