@@ -7,22 +7,25 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * @author Snowtyy
  */
 public class WirerInjector {
 
-    private PluginManager _pluginManager;
+    private Plugin _engine;
 
     private Map<Plugin, PluginInspector> _inspectors;
 
     private WirerServiceCollection _serviceCollection;
 
-    public WirerInjector() {
-        _pluginManager = Bukkit.getPluginManager();
+    public WirerInjector(Plugin engine) {
+        _engine = engine;
         _inspectors = new HashMap<>();
         _serviceCollection = new WirerServiceCollection();
     }
@@ -31,21 +34,28 @@ public class WirerInjector {
         if(_inspectors == null)
             throw new IllegalStateException("Injection has already been run.");
 
+        final Logger logger = _engine.getLogger();
+        logger.info("Dependency injection with Wirer:");
         // ============ SETUP PLUGINS ============
-        for (Plugin plugin : _pluginManager.getPlugins()) {
+        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
             if(plugin.isEnabled() && plugin instanceof InjectedPlugin injectedPlugin) {
                 this.setup(injectedPlugin);
             }
         }
 
         // ============ INJECTION ============
+        logger.info("| Injection in progress...");
+        Instant start = Instant.now();
         _inspectors.forEach(_serviceCollection::injectAll);
+        Duration duration = Duration.between(start, Instant.now());
+        logger.info("| Injection done!");
+        logger.info("| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
 
         // ========= CLOSE INSPECTORS ===========
         _inspectors.forEach((plugin, inspector) -> inspector.close());
 
         // ============ FREE MEMORY ===========
-        _pluginManager = null;
+        _engine = null;
         _inspectors = null;
         _serviceCollection = null;
     }
