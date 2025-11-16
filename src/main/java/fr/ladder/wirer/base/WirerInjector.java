@@ -7,11 +7,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * @author Snowtyy
@@ -24,8 +21,8 @@ public class WirerInjector {
 
     private WirerServiceCollection _serviceCollection;
 
-    public WirerInjector(PluginManager pluginManager) {
-        _pluginManager = pluginManager;
+    public WirerInjector() {
+        _pluginManager = Bukkit.getPluginManager();
         _inspectors = new HashMap<>();
         _serviceCollection = new WirerServiceCollection();
     }
@@ -42,13 +39,7 @@ public class WirerInjector {
         }
 
         // ============ INJECTION ============
-        final Logger logger = Bukkit.getLogger();
-        logger.info("Injecting services...");
-        Instant start = Instant.now();
         _inspectors.forEach(_serviceCollection::injectAll);
-        Duration duration = Duration.between(start, Instant.now());
-        logger.info("Injection finished!");
-        logger.info("> time: " + (duration.toNanos() / 10000) / 100D + "ms");
 
         // ========= CLOSE INSPECTORS ===========
         _inspectors.forEach((plugin, inspector) -> inspector.close());
