@@ -7,6 +7,6 @@ import org.bukkit.plugin.Plugin;
  */
 public interface InjectedPlugin extends Plugin {
 
-    void setup(ServiceCollection services);
+    void registerServices(ScopedServiceCollection services);
 
 }

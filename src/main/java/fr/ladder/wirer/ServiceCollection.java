@@ -5,18 +5,17 @@ package fr.ladder.wirer;
  */
 public interface ServiceCollection {
 
- <I, Impl extends I> void addSingleton(Class<I> classInterface, Class<Impl> classImplementation);
+    <I, T extends I> void addSingleton(Class<I> iClass, Class<T> tClass);
 
- <I, Impl extends I> void addSingleton(Class<I> classInterface, Impl implementation);
+    <T> void addSingleton(Class<T> tClass);
 
- <I, Impl extends I> void addScoped(Class<I> classInterface, Class<Impl> classImplementation);
+    <I, T extends I> void addSingleton(Class<I> iClass, T impl);
 
- <I, Impl extends I> void addScoped(Class<I> classInterface, Impl implementation);
+    <T> void addSingleton(T impl);
 
- <Impl> void addScoped(Class<Impl> classImplementation);
+    <I, T extends I> void addTransient(Class<I> iClass, Class<T> tClass);
 
- <Impl> void addScoped(Impl implementation);
+    <T> void addTransient(Class<T> tClass);
 
- <I, Impl extends I> void addTransient(Class<I> classInterface, Class<Impl> classImplementation);
-
+    ServiceProvider toProvider();
 }
