@@ -26,11 +26,7 @@ class WirerScopedServiceProvider implements ServiceProvider {
 
     Optional<Object> getInstance(Class<?> clazz) {
         return _parent.resolve(clazz, _scopedMap)
-                .or(() -> _parent.getInstance(clazz))
-                .or(() -> _scopedMap.values()
-                        .stream()
-                        .filter(clazz::isInstance)
-                        .findFirst());
+                .or(() -> _parent.getInstance(clazz));
     }
 
 }

@@ -281,9 +281,9 @@ class WirerScopedServiceCollectionTest {
         Optional<IService> actualScope1 = scope1.toProvider().get(IService.class);
         Optional<IService> actualScope2 = scope2.toProvider().get(IService.class);
 
-        assertFalse(actualParent.isPresent());
+        assertTrue(actualParent.isEmpty());
         assertTrue(actualScope1.isPresent());
-        assertFalse(actualScope2.isPresent());
+        assertTrue(actualScope2.isEmpty());
     }
 
     @Test
@@ -294,7 +294,7 @@ class WirerScopedServiceCollectionTest {
         var scope2 = new WirerScopedServiceCollection(parent);
 
         // act
-        scope2.addScoped(IService.class, Service.class);
+        scope2.addScoped(Service.class);
 
         // assert
 
@@ -302,9 +302,33 @@ class WirerScopedServiceCollectionTest {
         Optional<IService> actualScope1 = scope1.toProvider().get(IService.class);
         Optional<IService> actualScope2 = scope2.toProvider().get(IService.class);
 
-        assertFalse(actualParent.isPresent());
-        assertFalse(actualScope1.isPresent());
+        assertTrue(actualParent.isEmpty());
+        assertTrue(actualScope1.isEmpty());
         assertTrue(actualScope2.isPresent());
+    }
+
+    @Test
+    public void testAddScopedWithScopes3() {
+        String expected = "MyValue";
+
+        // arrange
+        var parent = new WirerServiceCollection();
+        var scope1 = new WirerScopedServiceCollection(parent);
+        var scope2 = new WirerScopedServiceCollection(parent);
+
+        // act
+        scope1.addScoped(String.class, expected);
+
+        // assert
+        Optional<String> actualParent = parent.toProvider().get(String.class);
+        Optional<String> actualScope1 = scope1.toProvider().get(String.class);
+        Optional<String> actualScope2 = scope2.toProvider().get(String.class);
+
+        assertTrue(actualParent.isEmpty());
+        assertTrue(actualScope1.isPresent());
+        assertTrue(actualScope2.isEmpty());
+
+        assertEquals(expected, actualScope1.get());
     }
 
     static class Service implements IService { }
