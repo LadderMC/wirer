@@ -30,14 +30,10 @@ class WirerServiceProvider implements ServiceProvider {
 
     Optional<Object> getInstance(Class<?> clazz) {
         return this.resolve(clazz, _singletonMap).or(() -> {
-            if(_transientMap.containsKey(clazz)) {
-                return this.newInstance(_transientMap.get(clazz));
-            }
+            if(!_transientMap.containsKey(clazz))
+                return Optional.empty();
 
-            return _singletonMap.values()
-                    .stream()
-                    .filter(clazz::isInstance)
-                    .findFirst();
+            return this.newInstance(_transientMap.get(clazz));
         });
     }
 
@@ -81,20 +77,43 @@ class WirerServiceProvider implements ServiceProvider {
     }
 
     Optional<Object> resolve(Class<?> clazz, Map<Class<?>, Object> map) {
-        if(!map.containsKey(clazz))
-            return Optional.empty();
+        Optional<Object> opt;
 
-        Object value = map.get(clazz);
-        if(!(value instanceof Class<?> impl))
-            return Optional.of(value);
+        if(map.containsKey(clazz)) {
+            Object value = map.get(clazz);
+            if(value instanceof Class<?> impl) {
+                opt = map.values()
+                        .stream()
+                        .filter(o -> o.getClass() == impl)
+                        .findFirst()
+                        .or(() -> this.newInstance(impl));
 
-        Optional<Object> opt = map.values()
+                opt.ifPresent(o -> map.put(clazz, o));
+
+                return opt;
+            } else {
+                // return directly because it isn't needed to put update map
+                return Optional.of(value);
+            }
+        }
+
+        // get service instance
+        opt = _singletonMap.values()
                 .stream()
-                .filter(obj -> impl.equals(obj.getClass()))
-                .findFirst()
-                .or(() -> this.newInstance(impl));
+                .filter(clazz::isInstance)
+                .findFirst();
 
-        opt.ifPresent(obj -> map.put(clazz, obj));
+        if(opt.isPresent())
+            return opt;
+
+        // last chance try to get instanced service to initialize
+        for (var entry : map.entrySet()) {
+            if(entry.getValue() instanceof Class<?> impl && clazz.isAssignableFrom(impl)) {
+                opt = this.newInstance(impl);
+                opt.ifPresent(o -> map.put(entry.getKey(), o));
+                break;
+            }
+        }
 
         return opt;
     }
