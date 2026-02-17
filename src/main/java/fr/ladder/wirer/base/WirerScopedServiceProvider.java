@@ -28,5 +28,4 @@ class WirerScopedServiceProvider implements ServiceProvider {
         return _parent.resolve(clazz, _scopedMap)
                 .or(() -> _parent.getInstance(clazz));
     }
-
 }
