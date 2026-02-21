@@ -1,10 +1,11 @@
 package fr.ladder.wirer.base;
 
+import fr.ladder.wirer.base.mock.*;
+
+import fr.ladder.wirer.exception.NotInstantiableException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +20,45 @@ class WirerServiceCollectionTest {
     }
 
     @Test
-    void testAddSingletonInstance() {
+    public void testAddInstantiable() {
+        // act
+        collection.addSingleton(IService.class, Service.class);
+        collection.addSingleton(Service.class);
+
+        collection.addTransient(ITransient.class, Transient.class);
+        collection.addTransient(Transient.class);
+    }
+
+    @Test
+    public void testAddNotInstantiable() {
+        // assert
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addSingleton(IService.class, IService.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addSingleton(IService.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addSingleton(IService.class, AbstractService.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addSingleton(AbstractService.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addTransient(ITransient.class, ITransient.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addTransient(ITransient.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addTransient(ITransient.class, AbstractTransient.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addTransient(AbstractTransient.class));
+    }
+
+    @Test
+    public void testAddSingletonInstance() {
         String expected = "MyValue";
 
         // act
@@ -127,68 +166,5 @@ class WirerServiceCollectionTest {
 
         assertSame(expected, service1.get());
         assertSame(expected, service2.get());
-    }
-
-    @Test
-    public void testResolveServiceProvider1() {
-        String expected = "MyValue";
-        // arrange
-        Map<Class<?>, Object> map = new HashMap<>();
-        map.put(String.class, expected);
-
-        WirerServiceProvider provider = collection.toProvider();
-
-        // act
-        var opt = provider.resolve(String.class, map);
-
-        // assert
-        assertTrue(opt.isPresent());
-        assertEquals(expected, opt.get());
-    }
-
-    @Test
-    public void testResolveServiceProvider2() {
-        // arrange
-        Map<Class<?>, Object> map = new HashMap<>();
-        map.put(IService.class, Service.class);
-
-        WirerServiceProvider provider = collection.toProvider();
-
-        // act
-        var opt = provider.resolve(IService.class, map);
-
-        // assert
-        assertTrue(opt.isPresent());
-        assertEquals(Service.class, opt.get().getClass());
-    }
-
-    @Test
-    public void testResolveServiceProvider3() {
-        // arrange
-        Map<Class<?>, Object> map = new HashMap<>();
-        map.put(IService.class, Service.class);
-        map.put(Service.class, Service.class);
-
-        WirerServiceProvider provider = collection.toProvider();
-
-        // act
-        var opt1 = provider.resolve(Service.class, map);
-        var opt2 = provider.resolve(IService.class, map);
-
-        // assert
-        assertTrue(opt1.isPresent());
-        assertEquals(Service.class, opt1.get().getClass());
-
-        assertTrue(opt2.isPresent());
-        assertEquals(Service.class, opt2.get().getClass());
-
-        assertSame(opt1.get(), opt2.get());
-    }
-
-    static class Service implements IService {
-    }
-
-    interface IService {
-
     }
 }

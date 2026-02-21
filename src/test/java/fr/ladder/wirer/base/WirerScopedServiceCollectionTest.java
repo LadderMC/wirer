@@ -1,5 +1,8 @@
 package fr.ladder.wirer.base;
 
+import fr.ladder.wirer.base.mock.*;
+
+import fr.ladder.wirer.exception.NotInstantiableException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +17,29 @@ class WirerScopedServiceCollectionTest {
     @BeforeEach
     public void setup() {
         collection = new WirerScopedServiceCollection(new WirerServiceCollection());
+    }
+
+    @Test
+    public void testAddInstantiable() {
+        // act
+        collection.addScoped(IService.class, Service.class);
+        collection.addScoped(Service.class);
+    }
+
+    @Test
+    public void testAddNotInstantiable() {
+        // assert
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addScoped(IService.class, IService.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addScoped(IService.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addScoped(IService.class, AbstractService.class));
+
+        assertThrows(NotInstantiableException.class, () ->
+                collection.addScoped(AbstractService.class));
     }
 
     @Test
@@ -330,8 +356,4 @@ class WirerScopedServiceCollectionTest {
 
         assertEquals(expected, actualScope1.get());
     }
-
-    static class Service implements IService { }
-
-    interface IService { }
 }

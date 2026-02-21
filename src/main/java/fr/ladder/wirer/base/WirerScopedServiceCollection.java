@@ -1,6 +1,7 @@
 package fr.ladder.wirer.base;
 
 import fr.ladder.wirer.ScopedServiceCollection;
+import fr.ladder.wirer.exception.NotInstantiableException;
 
 import java.util.*;
 
@@ -75,12 +76,20 @@ class WirerScopedServiceCollection implements ScopedServiceCollection {
 
     @Override
     public <I, T extends I> void addScoped(Class<I> iClass, Class<T> tClass) {
-        _scopedMap.put(iClass, tClass);
+        if(WirerServiceCollection.isInstantiable(tClass)) {
+            _scopedMap.put(iClass, tClass);
+        } else {
+            throw new NotInstantiableException(tClass);
+        }
     }
 
     @Override
     public <T> void addScoped(Class<T> tClass) {
-        _scopedMap.put(tClass, tClass);
+        if(WirerServiceCollection.isInstantiable(tClass)) {
+            _scopedMap.put(tClass, tClass);
+        } else {
+            throw new NotInstantiableException(tClass);
+        }
     }
 
     @Override

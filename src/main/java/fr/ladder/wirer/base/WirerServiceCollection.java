@@ -1,7 +1,9 @@
 package fr.ladder.wirer.base;
 
 import fr.ladder.wirer.ServiceCollection;
+import fr.ladder.wirer.exception.NotInstantiableException;
 
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
@@ -11,7 +13,7 @@ class WirerServiceCollection implements ServiceCollection {
 
     private final Map<Class<?>, Object> _singletonMap;
 
-    private final Map<Class<?>, Class<?>> _transientMap;
+    private final Map<Class<?>, Object> _transientMap;
 
     private final WirerServiceProvider _provider;
 
@@ -27,7 +29,7 @@ class WirerServiceCollection implements ServiceCollection {
         return _singletonMap;
     }
 
-    Map<Class<?>, Class<?>> getTransientMap() {
+    Map<Class<?>, Object> getTransientMap() {
         return _transientMap;
     }
 
@@ -37,12 +39,20 @@ class WirerServiceCollection implements ServiceCollection {
 
     @Override
     public <I, T extends I> void addSingleton(Class<I> iClass, Class<T> tClass) {
-        _singletonMap.put(iClass, tClass);
+        if(isInstantiable(tClass)) {
+            _singletonMap.put(iClass, tClass);
+        } else {
+            throw new NotInstantiableException(tClass);
+        }
     }
 
     @Override
     public <T> void addSingleton(Class<T> tClass) {
-        _singletonMap.put(tClass, tClass);
+        if(isInstantiable(tClass)) {
+            _singletonMap.put(tClass, tClass);
+        } else {
+            throw new NotInstantiableException(tClass);
+        }
     }
 
     @Override
@@ -61,19 +71,36 @@ class WirerServiceCollection implements ServiceCollection {
 
     @Override
     public <I, T extends I> void addTransient(Class<I> iClass, Class<T> tClass) {
-        _transientMap.put(iClass, tClass);
+        if(isInstantiable(tClass)) {
+            _transientMap.put(iClass, tClass);
+        } else {
+            throw new NotInstantiableException(tClass);
+        }
     }
 
     @Override
     public <T> void addTransient(Class<T> tClass) {
-        _transientMap.put(tClass, tClass);
+        if(isInstantiable(tClass)) {
+            _transientMap.put(tClass, tClass);
+        } else {
+            throw new NotInstantiableException(tClass);
+        }
     }
 
     // endregion
 
+    static boolean isInstantiable(Class<?> clazz) {
+        int modifiers = clazz.getModifiers();
+
+        return !clazz.isInterface()                // Pas une interface
+                && !Modifier.isAbstract(modifiers)     // Pas une classe abstraite
+                && !clazz.isPrimitive()                // Pas un type primitif (int, double, etc.)
+                && !clazz.isArray();                   // Pas un tableau
+    }
 
     @Override
     public WirerServiceProvider toProvider() {
         return _provider;
     }
+
 }

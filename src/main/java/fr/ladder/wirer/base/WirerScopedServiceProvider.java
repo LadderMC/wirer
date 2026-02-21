@@ -25,7 +25,29 @@ class WirerScopedServiceProvider implements ServiceProvider {
     }
 
     Optional<Object> getInstance(Class<?> clazz) {
-        return _parent.resolve(clazz, _scopedMap)
-                .or(() -> _parent.getInstance(clazz));
+        Optional<Object> opt;
+
+        // resolve scoped instance
+        opt = _parent.resolve(clazz, _scopedMap, true);
+        if(opt.isPresent())
+            return opt;
+
+        // resolve singleton or transient instance
+        opt = _parent.resolve(clazz);
+        if(opt.isPresent())
+            return opt;
+
+        // finally try to resolve scoped instance
+        opt = _parent.finallyResolveInstance(clazz, _scopedMap);
+        if(opt.isPresent())
+            return opt;
+
+        // finally try to resolve scoped class
+        opt = _parent.finallyResolveClass(clazz, _scopedMap, true);
+        if(opt.isPresent())
+            return opt;
+
+        // finally try to resolve singleton or transient instance or class.
+        return _parent.finallyResolve(clazz);
     }
 }
