@@ -108,4 +108,7 @@ class WirerScopedServiceCollection implements ScopedServiceCollection {
     public WirerScopedServiceProvider toProvider() {
         return _provider;
     }
+
+    void clear() {
+    }
 }

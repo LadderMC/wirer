@@ -16,6 +16,4 @@ public interface ServiceCollection {
     <I, T extends I> void addTransient(Class<I> iClass, Class<T> tClass);
 
     <T> void addTransient(Class<T> tClass);
-
-    ServiceProvider toProvider();
 }
