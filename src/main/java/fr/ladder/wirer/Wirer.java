@@ -9,24 +9,18 @@ import org.bukkit.plugin.Plugin;
 public class Wirer {
 
     private static Implementation impl;
-
+    
     private Wirer() {
         throw new UnsupportedOperationException("This is static class and cannot be instantiated");
     }
 
-    public static void initialize() throws IllegalStateException {
-        impl.initialize();
+    public static void initialize(Plugin engine) throws IllegalStateException {
+        impl.initialize(engine);
     }
-
-    public static void reset() {
-        impl.reset();
-    }
-
+    
     public interface Implementation {
 
-        void initialize(Plugin plugin) throws IllegalStateException;
-
-        void reset();
+        void initialize(Plugin engine) throws IllegalStateException;
 
         ServiceProvider of(WirerPlugin plugin);
 
