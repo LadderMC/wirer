@@ -14,11 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class WirerServiceProviderTest {
 
-    private WirerServiceCollection collection;
+    private AbstractServiceCollection collection;
 
     @BeforeEach
     public void setup() {
-        collection = new WirerServiceCollection();
+        collection = new AbstractServiceCollection();
     }
 
     @Test

@@ -16,7 +16,7 @@ class WirerScopedServiceCollectionTest {
 
     @BeforeEach
     public void setup() {
-        collection = new WirerScopedServiceCollection(new WirerServiceCollection());
+        collection = new WirerScopedServiceCollection(new AbstractServiceCollection());
     }
 
     @Test
@@ -174,7 +174,7 @@ class WirerScopedServiceCollectionTest {
         String expected = "MyValue";
 
         // arrange
-        var parent = new WirerServiceCollection();
+        var parent = new AbstractServiceCollection();
         var scope1 = new WirerScopedServiceCollection(parent);
         var scope2 = new WirerScopedServiceCollection(parent);
 
@@ -198,7 +198,7 @@ class WirerScopedServiceCollectionTest {
         String expected = "MyValue";
 
         // arrange
-        var parent = new WirerServiceCollection();
+        var parent = new AbstractServiceCollection();
         var scope1 = new WirerScopedServiceCollection(parent);
         var scope2 = new WirerScopedServiceCollection(parent);
 
@@ -222,7 +222,7 @@ class WirerScopedServiceCollectionTest {
         String expected = "MyValue";
 
         // arrange
-        var parent = new WirerServiceCollection();
+        var parent = new AbstractServiceCollection();
         var scope1 = new WirerScopedServiceCollection(parent);
         var scope2 = new WirerScopedServiceCollection(parent);
 
@@ -244,7 +244,7 @@ class WirerScopedServiceCollectionTest {
     @Test
     public void testAddTransientWithScopes1() {
         // arrange
-        var parent = new WirerServiceCollection();
+        var parent = new AbstractServiceCollection();
         var scope1 = new WirerScopedServiceCollection(parent);
         var scope2 = new WirerScopedServiceCollection(parent);
 
@@ -269,7 +269,7 @@ class WirerScopedServiceCollectionTest {
     @Test
     public void testAddTransientWithScopes2() {
         // arrange
-        var parent = new WirerServiceCollection();
+        var parent = new AbstractServiceCollection();
         var scope1 = new WirerScopedServiceCollection(parent);
         var scope2 = new WirerScopedServiceCollection(parent);
 
@@ -294,7 +294,7 @@ class WirerScopedServiceCollectionTest {
     @Test
     public void testAddScopedWithScopes1() {
         // arrange
-        var parent = new WirerServiceCollection();
+        var parent = new AbstractServiceCollection();
         var scope1 = new WirerScopedServiceCollection(parent);
         var scope2 = new WirerScopedServiceCollection(parent);
 
@@ -315,7 +315,7 @@ class WirerScopedServiceCollectionTest {
     @Test
     public void testAddScopedWithScopes2() {
         // arrange
-        var parent = new WirerServiceCollection();
+        var parent = new AbstractServiceCollection();
         var scope1 = new WirerScopedServiceCollection(parent);
         var scope2 = new WirerScopedServiceCollection(parent);
 
@@ -338,7 +338,7 @@ class WirerScopedServiceCollectionTest {
         String expected = "MyValue";
 
         // arrange
-        var parent = new WirerServiceCollection();
+        var parent = new AbstractServiceCollection();
         var scope1 = new WirerScopedServiceCollection(parent);
         var scope2 = new WirerScopedServiceCollection(parent);
 
