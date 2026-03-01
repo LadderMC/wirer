@@ -1,6 +1,6 @@
 package fr.ladder.wirer.plugin;
 
-import fr.ladder.wirer.ScopedServiceCollection;
+import fr.ladder.wirer.ServiceCollection;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -8,6 +8,6 @@ import org.bukkit.plugin.Plugin;
  */
 public interface WirerPlugin extends Plugin {
 
-    void registerServices(ScopedServiceCollection services);
+    void registerServices(ServiceCollection services);
 
 }

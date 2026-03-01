@@ -4,6 +4,7 @@ import fr.ladder.wirer.ServiceProvider;
 import io.netty.util.internal.ConcurrentSet;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -13,20 +14,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Snowtyy
  **/
 public class WirerServiceContainer extends AbstractServiceCollection implements ServiceProvider {
-   
-    private final Map<Class<?>, Object> singletonMap;
     
-    private final Map<Class<?>, Object> transientMap;
+    protected final Map<Class<?>, Object> singletonMap;
     
-    private final Map<Class<?>, Object> scopedMap;
+    protected final Map<Class<?>, Object> transientMap;
     
-    private final Set<Class<?>> resolvingSet;
+    protected final Map<Class<?>, Object> scopedMap;
+    
+    protected final Set<Class<?>> resolvingSet;
     
     public WirerServiceContainer(Map<Class<?>, Object> singletons, Map<Class<?>, Object> transients) {
         singletonMap = singletons;
         transientMap = transients;
         scopedMap = new ConcurrentHashMap<>();
-        resolvingSet = new ConcurrentSet<>();
+        resolvingSet = new HashSet<>();
     }
     
     @Override
