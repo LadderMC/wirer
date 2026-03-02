@@ -38,19 +38,19 @@ public abstract class AbstractServiceCollection implements ServiceCollection {
     @Override
     public <I, T extends I> void addScoped(Class<I> iClass, Class<T> tClass) {
         WirerUtils.ensureInstantiable(tClass);
-        this.registerSingleton(iClass, tClass);
+        this.registerScoped(iClass, tClass);
     
     }
     
     @Override
     public <T> void addScoped(Class<T> tClass) {
         WirerUtils.ensureInstantiable(tClass);
-        this.registerSingleton(tClass, tClass);
+        this.registerScoped(tClass, tClass);
     }
     
     @Override
     public <I, T extends I> void addScoped(Class<I> iClass, T impl) {
-        this.registerSingleton(iClass, impl);
+        this.registerScoped(iClass, impl);
     }
     
     @Override
