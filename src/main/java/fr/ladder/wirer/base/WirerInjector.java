@@ -1,12 +1,10 @@
 package fr.ladder.wirer.base;
 
-import fr.ladder.reflex.PluginInspector;
 import fr.ladder.reflex.Reflex;
-import fr.ladder.wirer.InjectedPlugin;
-import fr.ladder.wirer.ScopedServiceCollection;
+import fr.ladder.wirer.ServiceCollection;
 import fr.ladder.wirer.ServiceProvider;
 import fr.ladder.wirer.annotation.Inject;
-import fr.ladder.wirer.annotation.ToInject;
+import fr.ladder.wirer.plugin.WirerPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
@@ -15,96 +13,120 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
  * @author Snowtyy
- */
+ **/
 public class WirerInjector {
 
-    private Logger _logger;
+    private final Logger logger;
 
-    private final WirerServiceCollection _serviceCollection;
+    private final Map<Class<?>, Object> singletonMap;
+    
+    private final Map<Class<?>, Object> transientMap;
+    
+    private final Map<WirerPlugin, WirerServiceContainer> serviceContainerMap;
 
-    private final Map<Plugin, PluginInspector> _inspectorMap;
+    private boolean initialized = false;
 
-    public WirerInjector(Plugin engine) {
-        _logger = engine.getLogger();
-        _serviceCollection = new WirerServiceCollection();
-        _inspectorMap = new HashMap<>();
+    public WirerInjector(Logger logger) {
+        this.logger = logger;
+        singletonMap = new ConcurrentHashMap<>();
+        transientMap = new ConcurrentHashMap<>();
+        serviceContainerMap = new HashMap<>();
     }
+    
+    public synchronized void init() throws IllegalStateException {
+        if(initialized)
+            throw new IllegalStateException("Wirer DI is already initialized.");
 
-    private void prepare(Map<Plugin, ServiceProvider> providerMap) {
-        _logger.info("Dependency injection with Wirer:");
+        initialized = true;
+        logger.info("Initialize dependency injection with Wirer:");
 
-        Map<Plugin, ScopedServiceCollection> map = new HashMap<>();
         for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
-            if(!(p.isEnabled() && p instanceof InjectedPlugin plugin))
+            if(!(p.isEnabled() && p instanceof WirerPlugin plugin))
                 continue;
+            
             // création du "scoped service collection"
-            var serviceCollection = new WirerScopedServiceCollection(_serviceCollection);
-            map.put(plugin, serviceCollection);
+            var serviceCollection = serviceContainerMap.computeIfAbsent(plugin,
+                    _ -> new WirerServiceContainer(singletonMap, transientMap));
 
             // bindings par défaut
             serviceCollection.addScoped(plugin);
             serviceCollection.addScoped(plugin.getLogger());
             plugin.registerServices(serviceCollection);
-            this.registerAll(plugin, serviceCollection);
-        }
-
-        map.forEach((plugin, serviceCollection) -> providerMap.put(plugin, serviceCollection.toProvider()));
-    }
-
-    private void registerAll(Plugin plugin, ScopedServiceCollection serviceCollection) {
-        try (var inspector = Reflex.getInspector(plugin)) {
-            inspector.getClassesWithAnnotation(ToInject.class)
-                    .forEach(tClass -> bind(serviceCollection, tClass));
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private <I, T extends I> void bind(ScopedServiceCollection serviceCollection, Class<T> tClass) {
-        ToInject toInject = tClass.getAnnotation(ToInject.class);
-        Class<I> iClass = (Class<I>) toInject.value();
-        if(!iClass.isAssignableFrom(tClass))
-            return;
-        switch (toInject.type()) {
-            case SINGLETON -> serviceCollection.addSingleton(iClass, tClass);
-            case SCOPED -> serviceCollection.addScoped(iClass, tClass);
-            case TRANSIENT -> serviceCollection.addTransient(iClass, tClass);
-        }
-    }
-
-    private void injectAll(Map<Plugin, ServiceProvider> map) {
-        _logger.info("| Injection in progress...");
-
+    public synchronized void injectAll() throws IllegalStateException {
+        this.ensureInitialized();
+        logger.info("Starting injection with Wirer:");
         Instant start = Instant.now();
-        map.forEach(this::injectAll);
+        serviceContainerMap.forEach(this::injectContainer);
         Duration duration = Duration.between(start, Instant.now());
-        _logger.info("| Injection done!");
-        _logger.info("| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
+        logger.info("| Injection done!");
+        logger.info("| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
     }
 
-    private void clean() {
-        _logger = null;
+    public synchronized void ejectAll() throws IllegalStateException {
+        this.ensureInitialized();
+        logger.info("Cleaning injection...");
+        Instant start = Instant.now();
+        serviceContainerMap.forEach(this::ejectContainer);
+        Duration duration = Duration.between(start, Instant.now());
+        logger.info("| Cleaning done!");
+        logger.info("| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
     }
 
-    private void injectAll(Plugin plugin, ServiceProvider serviceProvider) {
+    public synchronized ServiceProvider get(WirerPlugin plugin) throws IllegalStateException {
+        this.ensureInitialized();
+        return serviceContainerMap.get(plugin);
+    }
+
+    private void injectContainer(WirerPlugin plugin, ServiceProvider serviceProvider) {
         try (var inspector = Reflex.getInspector(plugin)) {
-            inspector.getFieldsWithAnnotation(Inject.class)
-                    .filter(f -> Modifier.isPrivate(f.getModifiers()) && Modifier.isStatic(f.getModifiers()))
-                    .forEach(field -> {
-                        serviceProvider.get(field.getType()).ifPresent(obj -> {
-                            try {
-                                field.setAccessible(true);
-                                field.set(null, obj);
-                            } catch (IllegalAccessException _) {
-                                String objName = obj.getClass().getSimpleName();
-                                String fieldName = field.getDeclaringClass().getSimpleName() + "#" + field.getName();
-                                _logger.warning("An error occurred while injecting " + objName + " in " + fieldName);
-                            }
-                        });
-                    });
+            inspector.getFieldsWithAnnotation(Inject.class).forEach(field -> {
+                if(!Modifier.isPrivate(field.getModifiers()) || !Modifier.isStatic(field.getModifiers()))
+                    return;
+                serviceProvider.get(field.getType()).ifPresent(obj -> {
+                    try {
+                        field.setAccessible(true);
+                        field.set(null, obj);
+                    } catch (IllegalAccessException _) {
+                        String objName = obj.getClass().getSimpleName();
+                        String fieldName = field.getDeclaringClass().getSimpleName() + "#" + field.getName();
+                        logger.warning("An error occurred while injecting " + objName + " in " + fieldName);
+                    }
+                });
+            });
         }
     }
+
+    private void ejectContainer(WirerPlugin plugin, ServiceProvider serviceProvider) {
+        try (var inspector = Reflex.getInspector(plugin)) {
+            inspector.getFieldsWithAnnotation(Inject.class).forEach(field -> {
+                if(!Modifier.isPrivate(field.getModifiers()) || !Modifier.isStatic(field.getModifiers()))
+                    return;
+                try {
+                    field.setAccessible(true);
+                    field.set(null, null);
+                } catch (IllegalAccessException _) {
+                    String objName = "unknown";
+                    try {
+                        objName = field.get(null).getClass().getSimpleName();
+                    } catch (IllegalAccessException _) {}
+                    String fieldName = field.getDeclaringClass().getSimpleName() + "#" + field.getName();
+                    logger.warning("An error occurred while injecting " + objName + " in " + fieldName);
+                }
+            });
+        }
+    }
+
+    private void ensureInitialized() throws IllegalStateException {
+        if(!initialized)
+            throw new IllegalStateException("Wirer DI isn't initialized.");
+    }
+    
 }
