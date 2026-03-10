@@ -1,7 +1,6 @@
 package fr.ladder.wirer.base;
 
 import fr.ladder.reflex.Reflex;
-import fr.ladder.wirer.ServiceCollection;
 import fr.ladder.wirer.ServiceProvider;
 import fr.ladder.wirer.annotation.Inject;
 import fr.ladder.wirer.plugin.WirerPlugin;
