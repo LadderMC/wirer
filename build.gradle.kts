@@ -19,8 +19,9 @@ dependencies {
     implementation("org.jetbrains", "annotations", "24.0.1")
     implementation("org.slf4j", "slf4j-simple", "1.6.1")
 
-    implementation("fr.ladder", "reflex", "1.0.1-83cbd75")
     compileOnly("fr.snowtyy", "papermc", "1.8.8")
+
+    implementation("fr.ladder", "reflex", "0.1.0-69b336c5-main-1f651be")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
