@@ -1,7 +1,7 @@
 plugins {
     id("java")
     id("idea")
-    id("fr.ladder.releasr") version "0.1.0"
+    id("fr.ladder.releasr") version "0.2.0"
     id("com.gradleup.shadow") version "9.3.2"
 }
 
