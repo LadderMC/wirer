@@ -2,6 +2,7 @@ package fr.ladder.wirer.base;
 
 import fr.ladder.reflex.Reflex;
 import fr.ladder.wirer.ServiceProvider;
+import fr.ladder.wirer.Wirer;
 import fr.ladder.wirer.annotation.Inject;
 import fr.ladder.wirer.plugin.WirerPlugin;
 import org.bukkit.Bukkit;
@@ -18,7 +19,7 @@ import java.util.logging.Logger;
 /**
  * @author Snowtyy
  **/
-public class WirerInjector {
+public class WirerInjector implements Wirer.Implementation {
 
     private final Logger logger;
 
@@ -36,7 +37,7 @@ public class WirerInjector {
         transientMap = new ConcurrentHashMap<>();
         serviceContainerMap = new HashMap<>();
     }
-    
+
     public synchronized void init() throws IllegalStateException {
         if(initialized)
             throw new IllegalStateException("Wirer DI is already initialized.");
@@ -79,7 +80,8 @@ public class WirerInjector {
         logger.info("| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
     }
 
-    public synchronized ServiceProvider get(WirerPlugin plugin) throws IllegalStateException {
+    @Override
+    public synchronized ServiceProvider getProvider(WirerPlugin plugin) throws IllegalStateException {
         this.ensureInitialized();
         return serviceContainerMap.get(plugin);
     }
