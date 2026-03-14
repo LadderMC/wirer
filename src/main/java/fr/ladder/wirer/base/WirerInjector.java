@@ -14,8 +14,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.logging.Level;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 /**
@@ -23,7 +22,7 @@ import java.util.logging.Logger;
  **/
 public class WirerInjector implements Wirer.Implementation {
 
-    private final Consumer<String> log;
+    private final BiConsumer<LogLevel, String> log;
 
     private final Map<Class<?>, Object> singletonMap;
     
@@ -33,7 +32,7 @@ public class WirerInjector implements Wirer.Implementation {
 
     private boolean initialized = false;
 
-    public WirerInjector(Consumer<String> log) {
+    public WirerInjector(BiConsumer<LogLevel, String> log) {
         this.log = log;
         singletonMap = new ConcurrentHashMap<>();
         transientMap = new ConcurrentHashMap<>();
@@ -41,12 +40,17 @@ public class WirerInjector implements Wirer.Implementation {
     }
 
     /**
-     * @deprecated Use {@link WirerInjector#WirerInjector(Consumer)} instead.
+     * @deprecated Use {@link WirerInjector#WirerInjector(BiConsumer)} instead.
      * @param logger The logger to use.
      */
     @Deprecated(forRemoval = true)
     public WirerInjector(Logger logger) {
-        this(logger::info);
+        this((level, message) -> {
+            switch (level) {
+                case INFO ->  logger.info(message);
+                case WARN -> logger.warning(message);
+            }
+        });
     }
 
     /**
@@ -54,7 +58,12 @@ public class WirerInjector implements Wirer.Implementation {
      * @param plugin The plugin to use.
      */
     public WirerInjector(Plugin plugin) {
-        this(message -> plugin.getLogger().info(message));
+        this((level, message) -> {
+            switch (level) {
+                case INFO ->  plugin.getLogger().info(message);
+                case WARN -> plugin.getLogger().warning(message);
+            }
+        });
     }
 
     public synchronized void init() throws IllegalStateException {
@@ -62,7 +71,7 @@ public class WirerInjector implements Wirer.Implementation {
             throw new IllegalStateException("Wirer is already initialized.");
 
         initialized = true;
-        logger.info("Initialize wirer injection.");
+        log.accept(LogLevel.INFO, "Initialize wirer injection.");
 
         for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
             if(!(p.isEnabled() && p instanceof WirerPlugin plugin))
@@ -81,22 +90,22 @@ public class WirerInjector implements Wirer.Implementation {
 
     public synchronized void injectAll() throws IllegalStateException {
         this.ensureInitialized();
-        logger.info("Start wirer injection.");
+        log.accept(LogLevel.INFO, "Start wirer injection.");
         Instant start = Instant.now();
         serviceContainerMap.forEach(this::injectContainer);
         Duration duration = Duration.between(start, Instant.now());
-        logger.info("| Injection done!");
-        logger.info("| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
+        log.accept(LogLevel.INFO, "| Injection done!");
+        log.accept(LogLevel.INFO, "| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
     }
 
     public synchronized void ejectAll() throws IllegalStateException {
         this.ensureInitialized();
-        logger.info("Start wirer cleanup.");
+        log.accept(LogLevel.INFO, "Start wirer cleanup.");
         Instant start = Instant.now();
         serviceContainerMap.forEach(this::ejectContainer);
         Duration duration = Duration.between(start, Instant.now());
-        logger.info("| Cleanup done!");
-        logger.info("| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
+        log.accept(LogLevel.INFO, "| Cleanup done!");
+        log.accept(LogLevel.INFO, "| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
     }
 
     @Override
@@ -117,7 +126,7 @@ public class WirerInjector implements Wirer.Implementation {
                     } catch (IllegalAccessException _) {
                         String objName = obj.getClass().getSimpleName();
                         String fieldName = field.getDeclaringClass().getSimpleName() + "#" + field.getName();
-                        logger.warning("An error occurred while injecting " + objName + " in " + fieldName);
+                        log.accept(LogLevel.WARN, "An error occurred while injecting " + objName + " in " + fieldName);
                     }
                 });
             });
@@ -138,7 +147,7 @@ public class WirerInjector implements Wirer.Implementation {
                         objName = field.get(null).getClass().getSimpleName();
                     } catch (IllegalAccessException _) {}
                     String fieldName = field.getDeclaringClass().getSimpleName() + "#" + field.getName();
-                    logger.warning("An error occurred while injecting " + objName + " in " + fieldName);
+                    log.accept(LogLevel.WARN, "An error occurred while injecting " + objName + " in " + fieldName);
                 }
             });
         }
@@ -148,5 +157,10 @@ public class WirerInjector implements Wirer.Implementation {
         if(!initialized)
             throw new IllegalStateException("Wirer isn't initialized.");
     }
-    
+
+    public enum LogLevel {
+        INFO,
+        WARN
+    }
+
 }
