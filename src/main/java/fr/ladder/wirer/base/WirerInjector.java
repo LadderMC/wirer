@@ -14,6 +14,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -21,7 +23,7 @@ import java.util.logging.Logger;
  **/
 public class WirerInjector implements Wirer.Implementation {
 
-    private final Logger logger;
+    private final Consumer<String> log;
 
     private final Map<Class<?>, Object> singletonMap;
     
@@ -31,19 +33,36 @@ public class WirerInjector implements Wirer.Implementation {
 
     private boolean initialized = false;
 
-    public WirerInjector(Logger logger) {
-        this.logger = logger;
+    public WirerInjector(Consumer<String> log) {
+        this.log = log;
         singletonMap = new ConcurrentHashMap<>();
         transientMap = new ConcurrentHashMap<>();
         serviceContainerMap = new HashMap<>();
     }
 
+    /**
+     * @deprecated Use {@link WirerInjector#WirerInjector(Consumer)} instead.
+     * @param logger The logger to use.
+     */
+    @Deprecated(forRemoval = true)
+    public WirerInjector(Logger logger) {
+        this(logger::info);
+    }
+
+    /**
+     * Default logging system with plugin logger.
+     * @param plugin The plugin to use.
+     */
+    public WirerInjector(Plugin plugin) {
+        this(message -> plugin.getLogger().info(message));
+    }
+
     public synchronized void init() throws IllegalStateException {
         if(initialized)
-            throw new IllegalStateException("Wirer DI is already initialized.");
+            throw new IllegalStateException("Wirer is already initialized.");
 
         initialized = true;
-        logger.info("Initialize dependency injection with Wirer:");
+        logger.info("Initialize wirer injection.");
 
         for (Plugin p : Bukkit.getPluginManager().getPlugins()) {
             if(!(p.isEnabled() && p instanceof WirerPlugin plugin))
@@ -62,7 +81,7 @@ public class WirerInjector implements Wirer.Implementation {
 
     public synchronized void injectAll() throws IllegalStateException {
         this.ensureInitialized();
-        logger.info("Starting injection with Wirer:");
+        logger.info("Start wirer injection.");
         Instant start = Instant.now();
         serviceContainerMap.forEach(this::injectContainer);
         Duration duration = Duration.between(start, Instant.now());
@@ -72,11 +91,11 @@ public class WirerInjector implements Wirer.Implementation {
 
     public synchronized void ejectAll() throws IllegalStateException {
         this.ensureInitialized();
-        logger.info("Cleaning injection...");
+        logger.info("Start wirer cleanup.");
         Instant start = Instant.now();
         serviceContainerMap.forEach(this::ejectContainer);
         Duration duration = Duration.between(start, Instant.now());
-        logger.info("| Cleaning done!");
+        logger.info("| Cleanup done!");
         logger.info("| > time: " + (duration.toNanos() / 10000) / 100D + "ms");
     }
 
@@ -127,7 +146,7 @@ public class WirerInjector implements Wirer.Implementation {
 
     private void ensureInitialized() throws IllegalStateException {
         if(!initialized)
-            throw new IllegalStateException("Wirer DI isn't initialized.");
+            throw new IllegalStateException("Wirer isn't initialized.");
     }
     
 }
