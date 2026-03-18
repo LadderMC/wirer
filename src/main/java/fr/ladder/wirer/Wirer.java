@@ -13,7 +13,7 @@ public class Wirer {
         throw new UnsupportedOperationException("This is static class and cannot be instantiated");
     }
 
-    public static void setImplementation(Implementation implementation) {
+    public static void defineImpl(Implementation implementation) {
         impl = implementation;
     }
 
